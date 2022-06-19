@@ -17,7 +17,7 @@
     </form>
 
     <p>haven't signed up yet?</p>
-    <a href="{%url 'register' %}">Sign up</a>
+    <a href="{% url 'register' %}">Sign up</a>
 </div>
 
 {% else %}
@@ -27,7 +27,7 @@
     {% csrf_token %}
     {{form.as_p}}
     
-    <input type="submit" value="Register">
+    <input type="submit" value="register">
 </form>
     <p>Already signed up</p>
     <a href="{%url 'login'%}">Login</a>

@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from multiprocessing import context
 import re
 from django.shortcuts import render,redirect
-from .models import Room,Topic
+from .models import Room,Topic,Message
 from django.http import HttpResponse
 from .forms import RoomForm
 from django.db.models import Q
@@ -58,15 +58,30 @@ def home(request):
 
     topics=Topic.objects.all()
     room_count=rooms.count()
+    room_messages=Message.objects.filter(Q(room__name__icontains=q))
 
-    context={'rooms':rooms,'topics':topics,'rc':room_count}
+
+    context={'rooms':rooms,'topics':topics,'rc':room_count,'room_messages':room_messages}
     return render(request,'base/home.html',context)
 
 def room(request,pk):
     #id must be unique
     room=Room.objects.get(id=pk)
+    room_messages=room.message_set.all().order_by('-created')
+    participants=room.participants.all()
     
-    context={'room':room}
+    if request.method=='POST':
+        message=Message.objects.create(
+            user=request.user,
+            room=room,
+            body=request.POST.get('body')
+        )
+        room.participants.add(request.user)
+        return redirect('room',pk=room.id)
+
+
+
+    context={'room':room,'room_messages':room_messages,'participants':participants}
     return render(request,'base/room.html',context)
 @login_required(login_url='login')
 def createRoom(request):
@@ -108,6 +123,24 @@ def deleteRoom(request,pk):
     return render(request,'base/delete.html',{'obj':room})
 
 def registerpage(request):
-    page='register'
-    form=UserCreationForm()
-    return redirect(request,'base/login_register.html',{'form':form})
+    form = UserCreationForm()
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.username = user.username.lower()
+            user.save()
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'An error occurred during registration')
+    return render(request, 'base/login_register.html', {'form': form})
+
+def deleteMessage(request,pk):
+    message=Message.objects.get(id=pk)
+    if request.user !=message.user:
+        return HttpResponse('You are unaurthorized to enter here')
+    if request.method=="POST":
+        message.delete()
+        return redirect('home')
+    return render(request,'base/delete.html',{'obj':message})
