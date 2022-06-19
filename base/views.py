@@ -64,6 +64,15 @@ def home(request):
     context={'rooms':rooms,'topics':topics,'rc':room_count,'room_messages':room_messages}
     return render(request,'base/home.html',context)
 
+def userProfile(request,pk):
+    user=User.objects.get(id=pk)
+    rooms=user.room_set.all()
+    room_message=user.message_set.all()
+    topics=Topic.objects.all()
+    context={'user':user,'rooms':rooms,'room_messages':room_message,'topics':topics}
+    return render(request,'base/profile.html',context)
+
+
 def room(request,pk):
     #id must be unique
     room=Room.objects.get(id=pk)
