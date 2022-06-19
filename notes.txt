@@ -1,0 +1,18 @@
+we need to make migrations after creation of tabels
+//for creating room tabel ,in Models.py 
+class Room(models.Model):
+    #host=
+    #topic=
+    name=models.CharField(max_length=200)
+    description=models.TextField(null=True,blank=True)
+    #participants=
+    #taking time stamps when saved and created
+    updated=models.DateTimeField(auto_now=True)
+    created=models.DateTimeField(auto_now_add=True)
+
+python manage.py makemigrations
+
+python manage.py migrate
+
+from .models import Room
+in admin.py -->admin.site.register(Room)
